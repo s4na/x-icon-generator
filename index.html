@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X Icon Generator - プロフィールアイコン最適化ツール</title>
+    <meta name="description" content="Xのプロフィールアイコンを円形表示に最適化。背景カスタマイズ、リアルタイムプレビュー、複数サイズ確認が可能。">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="header-title">X Icon Generator</h1>
+            <p class="header-description">
+                Xのプロフィールアイコンを円形表示に最適化。背景をカスタマイズして、最適なアイコンを作成しましょう。
+            </p>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Editor Section -->
+            <section class="editor-section">
+                <!-- Upload Area -->
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-prompt">
+                        <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <p class="upload-text">画像をドラッグ&ドロップ<br>または</p>
+                        <label for="fileInput" class="file-input-label">
+                            ファイルを選択
+                            <input type="file" id="fileInput" accept="image/png, image/jpeg, image/jpg, image/gif" hidden>
+                        </label>
+                        <p class="upload-hint">JPG, PNG, GIF (最大10MB)</p>
+                    </div>
+                </div>
+
+                <!-- Main Editor Canvas -->
+                <div class="editor-canvas-container" id="editorContainer" style="display: none;">
+                    <canvas id="mainCanvas" class="main-canvas"></canvas>
+
+                    <!-- Image Controls -->
+                    <div class="image-controls">
+                        <div class="control-group">
+                            <label for="scaleSlider" class="control-label">
+                                拡大縮小: <span id="scaleValue">100%</span>
+                            </label>
+                            <input type="range" id="scaleSlider" class="slider" min="50" max="200" value="100">
+                        </div>
+
+                        <div class="control-buttons">
+                            <button id="resetBtn" class="btn btn-secondary">リセット</button>
+                            <button id="gridToggleBtn" class="btn btn-secondary">グリッド: OFF</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Preview Section -->
+            <section class="preview-section" id="previewSection" style="display: none;">
+                <h2 class="section-title">プレビュー</h2>
+
+                <div class="preview-grid">
+                    <!-- Large Preview (Profile Page) -->
+                    <div class="preview-item">
+                        <div class="preview-label">プロフィールページ</div>
+                        <canvas id="previewLarge" class="preview-canvas preview-large"></canvas>
+                        <div class="preview-size-label">200×200px</div>
+                    </div>
+
+                    <!-- Medium Preview (Timeline) -->
+                    <div class="preview-item">
+                        <div class="preview-label">タイムライン</div>
+                        <canvas id="previewMedium" class="preview-canvas preview-medium"></canvas>
+                        <div class="preview-size-label">48×48px</div>
+                    </div>
+
+                    <!-- Small Preview (Reply) -->
+                    <div class="preview-item">
+                        <div class="preview-label">リプライ</div>
+                        <canvas id="previewSmall" class="preview-canvas preview-small"></canvas>
+                        <div class="preview-size-label">24×24px</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Background Generator Section -->
+        <section class="background-section" id="backgroundSection" style="display: none;">
+            <h2 class="section-title">背景カスタマイズ</h2>
+
+            <!-- Background Type Tabs -->
+            <div class="bg-tabs">
+                <button class="bg-tab active" data-tab="solid">単色</button>
+                <button class="bg-tab" data-tab="gradient">グラデーション</button>
+                <button class="bg-tab" data-tab="pattern">パターン</button>
+                <button class="bg-tab" data-tab="preset">プリセット</button>
+            </div>
+
+            <!-- Solid Color Panel -->
+            <div class="bg-panel active" id="solidPanel">
+                <div class="color-picker-group">
+                    <label for="solidColor" class="control-label">背景色:</label>
+                    <input type="color" id="solidColor" class="color-input" value="#1DA1F2">
+                </div>
+            </div>
+
+            <!-- Gradient Panel -->
+            <div class="bg-panel" id="gradientPanel">
+                <div class="gradient-controls">
+                    <div class="color-picker-group">
+                        <label for="gradientColor1" class="control-label">色1:</label>
+                        <input type="color" id="gradientColor1" class="color-input" value="#FF6B6B">
+                    </div>
+                    <div class="color-picker-group">
+                        <label for="gradientColor2" class="control-label">色2:</label>
+                        <input type="color" id="gradientColor2" class="color-input" value="#FFE66D">
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">タイプ:</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="gradientType" value="linear" checked>
+                                線形
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="gradientType" value="radial">
+                                放射状
+                            </label>
+                        </div>
+                    </div>
+                    <div class="control-group" id="gradientAngleGroup">
+                        <label for="gradientAngle" class="control-label">
+                            角度: <span id="angleValue">135°</span>
+                        </label>
+                        <input type="range" id="gradientAngle" class="slider" min="0" max="360" value="135">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pattern Panel -->
+            <div class="bg-panel" id="patternPanel">
+                <div class="pattern-grid">
+                    <button class="pattern-btn" data-pattern="stripe-vertical">縦ストライプ</button>
+                    <button class="pattern-btn" data-pattern="stripe-horizontal">横ストライプ</button>
+                    <button class="pattern-btn" data-pattern="stripe-diagonal">斜めストライプ</button>
+                    <button class="pattern-btn" data-pattern="dots">ドット</button>
+                    <button class="pattern-btn" data-pattern="check">チェック</button>
+                    <button class="pattern-btn" data-pattern="wave">波模様</button>
+                </div>
+                <div class="pattern-colors">
+                    <div class="color-picker-group">
+                        <label for="patternColor1" class="control-label">色1:</label>
+                        <input type="color" id="patternColor1" class="color-input" value="#1DA1F2">
+                    </div>
+                    <div class="color-picker-group">
+                        <label for="patternColor2" class="control-label">色2:</label>
+                        <input type="color" id="patternColor2" class="color-input" value="#FFFFFF">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preset Panel -->
+            <div class="bg-panel" id="presetPanel">
+                <div class="preset-grid" id="presetGrid">
+                    <!-- Presets will be generated dynamically -->
+                </div>
+            </div>
+
+            <!-- Opacity Control (Common for all backgrounds) -->
+            <div class="opacity-control">
+                <label for="bgOpacity" class="control-label">
+                    背景の透明度: <span id="opacityValue">100%</span>
+                </label>
+                <input type="range" id="bgOpacity" class="slider" min="0" max="100" value="100">
+            </div>
+        </section>
+
+        <!-- Download Section -->
+        <section class="download-section" id="downloadSection" style="display: none;">
+            <h2 class="section-title">ダウンロード</h2>
+            <div class="download-buttons">
+                <button id="downloadPNG" class="btn btn-primary">
+                    <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    PNG形式でダウンロード
+                </button>
+                <button id="downloadJPG" class="btn btn-primary">
+                    <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    JPG形式でダウンロード
+                </button>
+            </div>
+            <p class="download-hint">400×400pxの正方形画像として保存されます</p>
+        </section>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+            <div class="spinner"></div>
+            <p>処理中...</p>
+        </div>
+
+        <!-- Toast Messages -->
+        <div class="toast" id="toast"></div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/background.js"></script>
+    <script src="js/canvas.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
