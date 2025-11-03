@@ -20,6 +20,12 @@ class XIconGenerator {
         this.uploadArea = document.getElementById('uploadArea');
         this.fileInput = document.getElementById('fileInput');
 
+        // Background image upload elements
+        this.backgroundUploadSection = document.getElementById('backgroundUploadSection');
+        this.backgroundUploadArea = document.getElementById('backgroundUploadArea');
+        this.backgroundInput = document.getElementById('backgroundInput');
+        this.removeBackgroundBtn = document.getElementById('removeBackgroundBtn');
+
         // Editor elements
         this.editorContainer = document.getElementById('editorContainer');
         this.scaleSlider = document.getElementById('scaleSlider');
@@ -29,9 +35,11 @@ class XIconGenerator {
 
         // Preview elements
         this.previewSection = document.getElementById('previewSection');
+        this.xPreviewSection = document.getElementById('xPreviewSection');
 
         // Background elements
         this.backgroundSection = document.getElementById('backgroundSection');
+        this.resetBackgroundBtn = document.getElementById('resetBackgroundBtn');
         this.bgTabs = document.querySelectorAll('.bg-tab');
         this.bgPanels = document.querySelectorAll('.bg-panel');
 
@@ -86,6 +94,27 @@ class XIconGenerator {
             this.uploadArea.classList.remove('dragover');
             this.handleFileDrop(e);
         });
+
+        // Background image upload
+        this.backgroundInput.addEventListener('change', (e) => this.handleBackgroundFileSelect(e));
+
+        this.backgroundUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            this.backgroundUploadArea.classList.add('dragover');
+        });
+
+        this.backgroundUploadArea.addEventListener('dragleave', () => {
+            this.backgroundUploadArea.classList.remove('dragover');
+        });
+
+        this.backgroundUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            this.backgroundUploadArea.classList.remove('dragover');
+            this.handleBackgroundFileDrop(e);
+        });
+
+        // Remove background button
+        this.removeBackgroundBtn.addEventListener('click', () => this.removeBackgroundImage());
 
         // Image controls
         this.scaleSlider.addEventListener('input', (e) => {
@@ -166,6 +195,9 @@ class XIconGenerator {
             this.opacityValue.textContent = e.target.value + '%';
             this.canvasManager.setBackground({ opacity });
         });
+
+        // Reset background button
+        this.resetBackgroundBtn.addEventListener('click', () => this.resetBackground());
 
         // Download buttons
         this.downloadPNG.addEventListener('click', () => this.downloadImage('png'));
@@ -373,8 +405,10 @@ class XIconGenerator {
             this.uploadArea.style.display = 'none';
             this.editorContainer.style.display = 'flex';
             this.previewSection.style.display = 'block';
+            this.backgroundUploadSection.style.display = 'block';
             this.backgroundSection.style.display = 'block';
             this.downloadSection.style.display = 'block';
+            this.xPreviewSection.style.display = 'block';
 
             Utils.hideLoading();
             Utils.showToast('画像を読み込みました', 'success');
@@ -382,6 +416,96 @@ class XIconGenerator {
             Utils.hideLoading();
             Utils.showToast(error.message, 'error');
         }
+    }
+
+    /**
+     * Handle background file select
+     * @param {Event} e - Change event
+     */
+    handleBackgroundFileSelect(e) {
+        const file = e.target.files[0];
+        if (file) {
+            this.loadBackgroundImageFile(file);
+        }
+    }
+
+    /**
+     * Handle background file drop
+     * @param {DragEvent} e - Drop event
+     */
+    handleBackgroundFileDrop(e) {
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            this.loadBackgroundImageFile(file);
+        }
+    }
+
+    /**
+     * Load background image file
+     * @param {File} file - Image file
+     */
+    async loadBackgroundImageFile(file) {
+        // Validate file
+        const validation = Utils.validateImageFile(file);
+        if (!validation.valid) {
+            Utils.showToast(validation.error, 'error');
+            return;
+        }
+
+        try {
+            Utils.showLoading();
+
+            // Load image
+            const img = await Utils.loadImageFromFile(file);
+
+            // Load into canvas manager
+            this.canvasManager.loadBackgroundImage(img);
+
+            // Show remove button
+            this.removeBackgroundBtn.style.display = 'block';
+
+            Utils.hideLoading();
+            Utils.showToast('背景画像を読み込みました', 'success');
+        } catch (error) {
+            Utils.hideLoading();
+            Utils.showToast(error.message, 'error');
+        }
+    }
+
+    /**
+     * Remove background image
+     */
+    removeBackgroundImage() {
+        this.canvasManager.removeBackgroundImage();
+        this.removeBackgroundBtn.style.display = 'none';
+        this.backgroundInput.value = '';
+        Utils.showToast('背景画像を削除しました', 'success');
+    }
+
+    /**
+     * Reset background customization to default
+     */
+    resetBackground() {
+        // Reset to default solid color
+        this.solidColor.value = '#1DA1F2';
+        this.bgOpacity.value = 100;
+        this.opacityValue.textContent = '100%';
+
+        // Switch to solid tab
+        this.switchBackgroundTab('solid');
+
+        // Update background
+        this.canvasManager.setBackground({
+            type: 'solid',
+            color: '#1DA1F2',
+            opacity: 1.0
+        });
+
+        // Remove active states from pattern and preset buttons
+        this.patternBtns.forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.preset-item').forEach(item => item.classList.remove('active'));
+
+        Utils.showToast('背景をリセットしました', 'success');
     }
 
     /**

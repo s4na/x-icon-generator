@@ -672,6 +672,130 @@ body {
     }
 }
 
+/* ===== Upload Section ===== */
+.upload-section {
+    margin-bottom: var(--spacing-md);
+}
+
+.upload-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+/* ===== Section Header ===== */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
+}
+
+.btn-small {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+/* ===== X-Style Post Preview ===== */
+.x-preview-section {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-md);
+    box-shadow: var(--shadow-sm);
+    margin-top: var(--spacing-md);
+}
+
+.x-post-container {
+    position: relative;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: #15202b;
+}
+
+.x-post-background {
+    width: 100%;
+    height: 200px;
+    position: relative;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    overflow: hidden;
+}
+
+.x-background-canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.x-post {
+    background: #15202b;
+    color: #ffffff;
+    padding: var(--spacing-md);
+    position: relative;
+}
+
+.x-post-header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    margin-top: -40px;
+    margin-bottom: var(--spacing-md);
+}
+
+.x-avatar-container {
+    flex-shrink: 0;
+    border: 4px solid #15202b;
+    border-radius: var(--radius-full);
+    background: #15202b;
+}
+
+.x-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radius-full);
+    display: block;
+}
+
+.x-user-info {
+    display: flex;
+    flex-direction: column;
+    margin-top: 40px;
+}
+
+.x-user-name {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.x-user-handle {
+    font-size: 0.9375rem;
+    color: #8b98a5;
+}
+
+.x-post-content {
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: #ffffff;
+    margin-bottom: var(--spacing-sm);
+}
+
+.x-post-content p {
+    margin-bottom: var(--spacing-xs);
+}
+
+.x-post-footer {
+    font-size: 0.9375rem;
+    color: #8b98a5;
+    padding-top: var(--spacing-sm);
+    border-top: 1px solid #38444d;
+}
+
+.x-post-time {
+    font-size: 0.875rem;
+}
+
 /* ===== Utility Classes ===== */
 .hidden {
     display: none !important;
