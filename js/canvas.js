@@ -11,11 +11,18 @@ class CanvasManager {
         this.previewMedium = document.getElementById('previewMedium');
         this.previewSmall = document.getElementById('previewSmall');
 
+        // X-style preview canvases
+        this.xAvatarCanvas = document.getElementById('xAvatarCanvas');
+        this.xBackgroundCanvas = document.getElementById('xBackgroundCanvas');
+
         // Image properties
         this.image = null;
         this.imageX = 0;
         this.imageY = 0;
         this.imageScale = 1.0;
+
+        // Background image properties
+        this.backgroundImage = null;
 
         // Canvas properties
         this.canvasSize = 400;
@@ -76,6 +83,23 @@ class CanvasManager {
     loadImage(img) {
         this.image = img;
         this.resetImageTransform();
+    }
+
+    /**
+     * Load background image
+     * @param {HTMLImageElement} img - Background image to load
+     */
+    loadBackgroundImage(img) {
+        this.backgroundImage = img;
+        this.render();
+    }
+
+    /**
+     * Remove background image
+     */
+    removeBackgroundImage() {
+        this.backgroundImage = null;
+        this.render();
     }
 
     /**
@@ -330,11 +354,78 @@ class CanvasManager {
     }
 
     /**
+     * Render X-style preview
+     */
+    renderXPreview() {
+        if (!this.image) return;
+
+        // Render avatar
+        const avatarSize = 80;
+        const dpr = window.devicePixelRatio || 1;
+        this.xAvatarCanvas.width = avatarSize * dpr;
+        this.xAvatarCanvas.height = avatarSize * dpr;
+        const avatarCtx = this.xAvatarCanvas.getContext('2d');
+        avatarCtx.scale(dpr, dpr);
+        this.xAvatarCanvas.style.width = avatarSize + 'px';
+        this.xAvatarCanvas.style.height = avatarSize + 'px';
+
+        avatarCtx.clearRect(0, 0, avatarSize, avatarSize);
+        this.drawCircularImage(avatarCtx, avatarSize);
+
+        // Render background
+        const bgCanvas = this.xBackgroundCanvas;
+        const bgContainer = document.getElementById('xPostBackground');
+        const bgWidth = bgContainer.offsetWidth || 600;
+        const bgHeight = 200;
+
+        bgCanvas.width = bgWidth * dpr;
+        bgCanvas.height = bgHeight * dpr;
+        const bgCtx = bgCanvas.getContext('2d');
+        bgCtx.scale(dpr, dpr);
+        bgCanvas.style.width = bgWidth + 'px';
+        bgCanvas.style.height = bgHeight + 'px';
+
+        bgCtx.clearRect(0, 0, bgWidth, bgHeight);
+
+        if (this.backgroundImage) {
+            // Draw background image
+            const imgAspect = this.backgroundImage.width / this.backgroundImage.height;
+            const canvasAspect = bgWidth / bgHeight;
+
+            let drawWidth, drawHeight, drawX, drawY;
+
+            if (imgAspect > canvasAspect) {
+                // Image is wider - fit to height
+                drawHeight = bgHeight;
+                drawWidth = this.backgroundImage.width * (bgHeight / this.backgroundImage.height);
+                drawX = (bgWidth - drawWidth) / 2;
+                drawY = 0;
+            } else {
+                // Image is taller - fit to width
+                drawWidth = bgWidth;
+                drawHeight = this.backgroundImage.height * (bgWidth / this.backgroundImage.width);
+                drawX = 0;
+                drawY = (bgHeight - drawHeight) / 2;
+            }
+
+            bgCtx.drawImage(this.backgroundImage, drawX, drawY, drawWidth, drawHeight);
+        } else {
+            // Draw default gradient background
+            const gradient = bgCtx.createLinearGradient(0, 0, bgWidth, bgHeight);
+            gradient.addColorStop(0, '#667eea');
+            gradient.addColorStop(1, '#764ba2');
+            bgCtx.fillStyle = gradient;
+            bgCtx.fillRect(0, 0, bgWidth, bgHeight);
+        }
+    }
+
+    /**
      * Render all canvases
      */
     render() {
         this.renderMain();
         this.renderPreviews();
+        this.renderXPreview();
     }
 
     /**
