@@ -24,6 +24,10 @@ class XIconGenerator {
         this.backgroundUploadSection = document.getElementById('backgroundUploadSection');
         this.backgroundUploadArea = document.getElementById('backgroundUploadArea');
         this.backgroundInput = document.getElementById('backgroundInput');
+        this.bgImageControls = document.getElementById('bgImageControls');
+        this.bgScaleSlider = document.getElementById('bgScaleSlider');
+        this.bgScaleValue = document.getElementById('bgScaleValue');
+        this.resetBgImageBtn = document.getElementById('resetBgImageBtn');
         this.removeBackgroundBtn = document.getElementById('removeBackgroundBtn');
 
         // Editor elements
@@ -113,8 +117,51 @@ class XIconGenerator {
             this.handleBackgroundFileDrop(e);
         });
 
-        // Remove background button
+        // Background image controls
+        this.bgScaleSlider.addEventListener('input', (e) => {
+            const scale = parseFloat(e.target.value) / 100;
+            this.canvasManager.setBgImageScale(scale);
+            this.bgScaleValue.textContent = e.target.value + '%';
+        });
+
+        this.resetBgImageBtn.addEventListener('click', () => {
+            this.canvasManager.resetBackgroundImageTransform();
+            this.updateBgScaleSlider();
+        });
+
         this.removeBackgroundBtn.addEventListener('click', () => this.removeBackgroundImage());
+
+        // Background canvas interactions
+        const bgCanvas = this.canvasManager.xBackgroundCanvas;
+
+        // Mouse events for background image
+        bgCanvas.addEventListener('mousedown', (e) => {
+            if (this.canvasManager.backgroundImage) {
+                this.canvasManager.startBgDrag(e);
+            }
+        });
+        bgCanvas.addEventListener('mousemove', (e) => this.canvasManager.dragBg(e));
+        bgCanvas.addEventListener('mouseup', () => this.canvasManager.endBgDrag());
+        bgCanvas.addEventListener('mouseleave', () => this.canvasManager.endBgDrag());
+        bgCanvas.addEventListener('wheel', (e) => {
+            if (this.canvasManager.backgroundImage) {
+                this.canvasManager.handleBgWheel(e);
+                this.updateBgScaleSlider();
+            }
+        });
+
+        // Touch events for background image
+        bgCanvas.addEventListener('touchstart', (e) => {
+            if (this.canvasManager.backgroundImage && e.touches.length === 1) {
+                this.canvasManager.startBgDrag(e);
+            }
+        });
+        bgCanvas.addEventListener('touchmove', (e) => {
+            if (this.canvasManager.backgroundImage && e.touches.length === 1) {
+                this.canvasManager.dragBg(e);
+            }
+        });
+        bgCanvas.addEventListener('touchend', () => this.canvasManager.endBgDrag());
 
         // Image controls
         this.scaleSlider.addEventListener('input', (e) => {
@@ -461,8 +508,12 @@ class XIconGenerator {
             // Load into canvas manager
             this.canvasManager.loadBackgroundImage(img);
 
-            // Show remove button
-            this.removeBackgroundBtn.style.display = 'block';
+            // Show controls and hide upload area
+            this.backgroundUploadArea.style.display = 'none';
+            this.bgImageControls.style.display = 'block';
+
+            // Update slider to reflect initial scale
+            this.updateBgScaleSlider();
 
             Utils.hideLoading();
             Utils.showToast('背景画像を読み込みました', 'success');
@@ -473,12 +524,27 @@ class XIconGenerator {
     }
 
     /**
+     * Update background scale slider value
+     */
+    updateBgScaleSlider() {
+        const scale = Math.round(this.canvasManager.bgImageScale * 100);
+        this.bgScaleSlider.value = scale;
+        this.bgScaleValue.textContent = scale + '%';
+    }
+
+    /**
      * Remove background image
      */
     removeBackgroundImage() {
         this.canvasManager.removeBackgroundImage();
-        this.removeBackgroundBtn.style.display = 'none';
+
+        // Hide controls and show upload area
+        this.bgImageControls.style.display = 'none';
+        this.backgroundUploadArea.style.display = 'block';
+
+        // Reset input
         this.backgroundInput.value = '';
+
         Utils.showToast('背景画像を削除しました', 'success');
     }
 

@@ -55,9 +55,23 @@
                             <p class="upload-hint">JPG, PNG, GIF (最大10MB)</p>
                         </div>
                     </div>
-                    <button id="removeBackgroundBtn" class="btn btn-secondary" style="display: none; margin-top: 1rem;">
-                        背景画像を削除
-                    </button>
+
+                    <!-- Background Image Controls -->
+                    <div class="bg-image-controls" id="bgImageControls" style="display: none; margin-top: 1rem;">
+                        <div class="control-group">
+                            <label for="bgScaleSlider" class="control-label">
+                                拡大縮小: <span id="bgScaleValue">100%</span>
+                            </label>
+                            <input type="range" id="bgScaleSlider" class="slider" min="50" max="300" value="100">
+                        </div>
+                        <div class="control-buttons">
+                            <button id="resetBgImageBtn" class="btn btn-secondary">リセット</button>
+                            <button id="removeBackgroundBtn" class="btn btn-secondary">削除</button>
+                        </div>
+                        <p class="upload-hint" style="margin-top: 0.5rem;">
+                            ドラッグで位置を調整、マウスホイールで拡大縮小できます
+                        </p>
+                    </div>
                 </div>
 
                 <!-- Main Editor Canvas -->
