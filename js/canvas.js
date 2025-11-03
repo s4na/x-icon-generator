@@ -23,6 +23,9 @@ class CanvasManager {
 
         // Background image properties
         this.backgroundImage = null;
+        this.bgImageX = 0;
+        this.bgImageY = 0;
+        this.bgImageScale = 1.0;
 
         // Canvas properties
         this.canvasSize = 400;
@@ -43,6 +46,13 @@ class CanvasManager {
         this.dragStartY = 0;
         this.lastImageX = 0;
         this.lastImageY = 0;
+
+        // Background image interaction state
+        this.isBgDragging = false;
+        this.bgDragStartX = 0;
+        this.bgDragStartY = 0;
+        this.lastBgImageX = 0;
+        this.lastBgImageY = 0;
 
         // Touch interaction state
         this.initialDistance = 0;
@@ -91,6 +101,70 @@ class CanvasManager {
      */
     loadBackgroundImage(img) {
         this.backgroundImage = img;
+        this.resetBackgroundImageTransform();
+        this.render();
+    }
+
+    /**
+     * Reset background image transform to initial state
+     */
+    resetBackgroundImageTransform() {
+        if (!this.backgroundImage) return;
+
+        // Fit background image to cover the canvas area
+        const bgContainer = document.getElementById('xPostBackground');
+        const bgWidth = bgContainer.offsetWidth || 600;
+        const bgHeight = 200;
+
+        const imgAspect = this.backgroundImage.width / this.backgroundImage.height;
+        const canvasAspect = bgWidth / bgHeight;
+
+        if (imgAspect > canvasAspect) {
+            // Image is wider - fit to height
+            this.bgImageScale = bgHeight / this.backgroundImage.height;
+        } else {
+            // Image is taller - fit to width
+            this.bgImageScale = bgWidth / this.backgroundImage.width;
+        }
+
+        const scaledWidth = this.backgroundImage.width * this.bgImageScale;
+        const scaledHeight = this.backgroundImage.height * this.bgImageScale;
+
+        this.bgImageX = (bgWidth - scaledWidth) / 2;
+        this.bgImageY = (bgHeight - scaledHeight) / 2;
+    }
+
+    /**
+     * Set background image scale
+     * @param {number} scale - Scale value (0.5 - 3.0)
+     */
+    setBgImageScale(scale) {
+        const bgContainer = document.getElementById('xPostBackground');
+        const bgWidth = bgContainer.offsetWidth || 600;
+        const bgHeight = 200;
+
+        const oldScale = this.bgImageScale;
+        this.bgImageScale = Utils.clamp(scale, 0.5, 3.0);
+
+        // Adjust position to keep center point stable
+        const centerX = bgWidth / 2;
+        const centerY = bgHeight / 2;
+
+        const scaleDiff = this.bgImageScale / oldScale;
+        this.bgImageX = centerX - (centerX - this.bgImageX) * scaleDiff;
+        this.bgImageY = centerY - (centerY - this.bgImageY) * scaleDiff;
+
+        this.render();
+    }
+
+    /**
+     * Set background image position
+     * @param {number} x - X coordinate
+     * @param {number} y - Y coordinate
+     */
+    setBgImagePosition(x, y) {
+        this.bgImageX = x;
+        this.bgImageY = y;
         this.render();
     }
 
@@ -388,27 +462,17 @@ class CanvasManager {
         bgCtx.clearRect(0, 0, bgWidth, bgHeight);
 
         if (this.backgroundImage) {
-            // Draw background image
-            const imgAspect = this.backgroundImage.width / this.backgroundImage.height;
-            const canvasAspect = bgWidth / bgHeight;
+            // Draw background image with cropping support
+            const scaledWidth = this.backgroundImage.width * this.bgImageScale;
+            const scaledHeight = this.backgroundImage.height * this.bgImageScale;
 
-            let drawWidth, drawHeight, drawX, drawY;
-
-            if (imgAspect > canvasAspect) {
-                // Image is wider - fit to height
-                drawHeight = bgHeight;
-                drawWidth = this.backgroundImage.width * (bgHeight / this.backgroundImage.height);
-                drawX = (bgWidth - drawWidth) / 2;
-                drawY = 0;
-            } else {
-                // Image is taller - fit to width
-                drawWidth = bgWidth;
-                drawHeight = this.backgroundImage.height * (bgWidth / this.backgroundImage.width);
-                drawX = 0;
-                drawY = (bgHeight - drawHeight) / 2;
-            }
-
-            bgCtx.drawImage(this.backgroundImage, drawX, drawY, drawWidth, drawHeight);
+            bgCtx.drawImage(
+                this.backgroundImage,
+                this.bgImageX,
+                this.bgImageY,
+                scaledWidth,
+                scaledHeight
+            );
         } else {
             // Draw default gradient background
             const gradient = bgCtx.createLinearGradient(0, 0, bgWidth, bgHeight);
@@ -513,5 +577,55 @@ class CanvasManager {
             const scale = (currentDistance / this.initialDistance) * this.initialScale;
             this.setScale(scale);
         }
+    }
+
+    /**
+     * Start dragging background image
+     * @param {Event} e - Mouse or touch event
+     */
+    startBgDrag(e) {
+        e.preventDefault();
+        this.isBgDragging = true;
+
+        const canvas = this.xBackgroundCanvas;
+        const point = Utils.getEventPoint(e, canvas);
+        this.bgDragStartX = point.x;
+        this.bgDragStartY = point.y;
+        this.lastBgImageX = this.bgImageX;
+        this.lastBgImageY = this.bgImageY;
+    }
+
+    /**
+     * Handle dragging background image
+     * @param {Event} e - Mouse or touch event
+     */
+    dragBg(e) {
+        if (!this.isBgDragging) return;
+        e.preventDefault();
+
+        const canvas = this.xBackgroundCanvas;
+        const point = Utils.getEventPoint(e, canvas);
+        const dx = point.x - this.bgDragStartX;
+        const dy = point.y - this.bgDragStartY;
+
+        this.setBgImagePosition(this.lastBgImageX + dx, this.lastBgImageY + dy);
+    }
+
+    /**
+     * End dragging background image
+     */
+    endBgDrag() {
+        this.isBgDragging = false;
+    }
+
+    /**
+     * Handle mouse wheel zoom for background image
+     * @param {WheelEvent} e - Wheel event
+     */
+    handleBgWheel(e) {
+        e.preventDefault();
+
+        const delta = e.deltaY > 0 ? -0.05 : 0.05;
+        this.setBgImageScale(this.bgImageScale + delta);
     }
 }
