@@ -58,15 +58,29 @@ class CanvasManager {
      * Set canvas size and handle high DPI displays
      * @param {HTMLCanvasElement} canvas - Canvas element
      * @param {number} size - Desired size
+     * @param {Object} [options] - Additional configuration
+     * @param {boolean} [options.useDevicePixelRatio=true] - Whether to scale using the device pixel ratio
      */
-    setCanvasSize(canvas, size) {
-        const dpr = window.devicePixelRatio || 1;
+    setCanvasSize(canvas, size, options = {}) {
+        const { useDevicePixelRatio = true } = options;
+        const dpr = useDevicePixelRatio ? (window.devicePixelRatio || 1) : 1;
+
         canvas.width = size * dpr;
         canvas.height = size * dpr;
+
         const ctx = canvas.getContext('2d');
-        ctx.scale(dpr, dpr);
-        canvas.style.width = size + 'px';
-        canvas.style.height = size + 'px';
+        if (!ctx) return;
+
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+        if (useDevicePixelRatio && dpr !== 1) {
+            ctx.scale(dpr, dpr);
+        }
+
+        if (canvas.style) {
+            canvas.style.width = size + 'px';
+            canvas.style.height = size + 'px';
+        }
     }
 
     /**
@@ -344,7 +358,7 @@ class CanvasManager {
     generateDownloadCanvas() {
         const downloadCanvas = document.createElement('canvas');
         const downloadSize = 400;
-        this.setCanvasSize(downloadCanvas, downloadSize);
+        this.setCanvasSize(downloadCanvas, downloadSize, { useDevicePixelRatio: false });
 
         const ctx = downloadCanvas.getContext('2d');
         this.drawCircularImage(ctx, downloadSize);
